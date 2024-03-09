@@ -1,0 +1,88 @@
+﻿body {
+}
+
+.form-ingreso {
+    margin-left: 30%;
+    margin-right: 30%;
+    margin-top: 5%;
+}
+
+.items {
+    column-count: 4;
+    column-gap: 10px;
+    padding: 0 5px;
+}
+
+.item {
+    display: inline-block;
+    width: 100%;
+    margin: 5px 0;
+}
+
+@media only screen and (max-width: 1200px) {
+    .items {
+        column-count: 3;
+    }
+}
+
+.form-actualizar-cuenta {
+    margin-left: 30%;
+    margin-right: 30%;
+    margin-top: 5%;
+}
+
+.menu-cuenta {
+    margin-right: -200px;
+}
+
+.cargando:before {
+    content: '';
+    background: #000000cc;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.cargando:after {
+    content: 'Cargando ...';
+    /*content:url('cargando.svg');*/
+    position: fixed;
+    width: 100%;
+    top: 50%;
+    left: 0;
+    z-index: 1001;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.botones-nuevo {
+    margin-left: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.boton-nueva-serie {
+    margin-left: 20px;
+}
+
+.filtros {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.listado-registros {
+    margin-top: 20px;
+}
+
+.red-accent-4 {
+    color: #D50000;
+}
+
+.green-accent-3 {
+    color: #00E676;
+}

@@ -1,0 +1,156 @@
+﻿@{
+    ViewData["Title"] = "Ingreso";
+}
+
+<div id="app"></div>
+
+<script type="text/x-template" id="app-template">
+    <v-app>
+
+        <v-card class="form-ingreso">
+            <v-card-title class="headline black text-center" primary-title>
+                Ingreso
+            </v-card-title>
+            <v-card-text class="pa-5">
+                <v-form ref="form_ingreso">
+                    <v-text-field v-model="form_ingreso_usuario" label="Usuario" :rules="rules_form_ingreso"></v-text-field>
+                    <v-text-field type="password" v-model="form_ingreso_clave" label="Clave" :rules="rules_form_ingreso"></v-text-field>
+                </v-form>
+            </v-card-text>
+            <v-card-actions class="pa-5">
+                <v-btn prepend-icon="mdi-login" absolute variant="elevated" type="submit" color="primary" @@click="validar_formulario_ingreso()" :style="{left: '50%', transform:'translateX(-50%)'}">Ingresar</v-btn>
+            </v-card-actions>
+        </v-card>
+        <div class="text-center">
+            <v-snackbar
+                v-model="snackbar"
+                :timeout="5000"
+                multi-line
+            >
+                {{ texto }}
+
+                <template v-slot:actions>
+                <v-btn
+                    color="red"
+                    variant="text"
+                    @@click="snackbar = false"
+                >
+                    Cerrar
+                </v-btn>
+                </template>
+            </v-snackbar>
+        </div>
+    </v-app>
+</script>
+
+<script>
+
+    // Efecto de cargando en las peticiones axios
+
+    axios.interceptors.request.use(function (config) {
+
+        document.body.classList.add('efecto-cargando');
+
+        return config
+    }, function (error) {
+        return Promise.reject(error);
+    });
+
+    axios.interceptors.response.use(function (response) {
+
+        document.body.classList.remove('efecto-cargando');
+
+        return response;
+    }, function (error) {
+        return Promise.reject(error);
+    });
+
+    const { createApp } = Vue;
+    const { createVuetify } = Vuetify;
+
+    const customDarkTheme = {
+        dark: true,
+        colors: {
+            //background: "#15202b",
+            //surface: "#15202b",
+            primary: "#3A8B63",
+            //secondary: "#03dac6",
+            //error: "#f44336",
+            //info: "#2196F3",
+            //success: "#4caf50",
+            //warning: "#fb8c00",
+        },
+    };
+
+    const vuetify = createVuetify({
+        theme: {
+            defaultTheme: "customDarkTheme",
+            themes: {
+                customDarkTheme,
+            },
+        },
+    })
+
+    const routes = [
+    ];
+
+    const router = VueRouter.createRouter({
+        history: VueRouter.createWebHashHistory(),
+        routes
+    })
+
+    const app = createApp({
+        template: "#app-template",
+        data() {
+            return {
+                rules_form_ingreso: [
+                    value => {
+                        if (value) return true
+                        return "El campo es requerido"
+                    },
+                ],
+                texto: "",
+                snackbar: false,
+                form_ingreso_usuario: "",
+                form_ingreso_clave: "",
+            };
+        },
+        methods: {
+            ingresar() {
+
+                axios
+                    .post(config.api_url + "/ingreso", { "usuario": this.form_ingreso_usuario, "clave" : this.form_ingreso_clave })
+                    .then(response => {
+                        var data = response.data;
+                        var estado = data.estado;
+                        console.log(response.data);
+                        if(estado == 1) {
+                            var token = response.data.token;
+                            sessionStorage.setItem(config.nombre_sesion, token);
+                            window.location.href = '/administracion';
+                        } else {
+                            this.mostrar_mensaje("Los datos son inválidos");
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+            },
+            async validar_formulario_ingreso() {
+                const { valid } = await this.$refs.form_ingreso.validate();
+
+                if (valid) {
+                    this.ingresar();
+                }
+            },
+            mostrar_mensaje: function(texto) {
+                this.snackbar = true;
+                this.texto = texto;
+            }
+        }
+    })
+        .use(vuetify)
+        .use(router)
+        .mount("#app");
+
+</script>

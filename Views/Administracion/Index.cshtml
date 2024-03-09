@@ -1,0 +1,939 @@
+﻿@{
+    ViewData["Title"] = "Registro de películas y series";
+    string usuario_logeado = ViewBag.usuario_logeado;
+}
+
+<div id="app"></div>
+
+<script type="text/x-template" id="app-template">
+        <v-app>
+        <v-card height="100%">
+            <v-toolbar color="primary">
+              <v-app-bar-nav-icon></v-app-bar-nav-icon>
+
+              <v-toolbar-title>Registro de películas y series</v-toolbar-title>
+
+              <v-spacer></v-spacer>
+
+              <v-btn icon="mdi-account-circle" @@click="modal_cuenta = true"></v-btn>
+              <v-btn icon="mdi-logout" @@click=cerrar_sesion()></v-btn>
+
+            </v-toolbar>
+
+            <!-- Modal de película -->
+                <v-dialog
+                v-model="modal_pelicula"
+                persistent
+                width="500"
+                justify="center"
+                >
+                <v-card>
+                    <v-card-title class="headline black text-center" primary-title>
+                    <span class="text-h5">Película</span>
+                    </v-card-title>
+                    <v-card-text>
+                    <v-form ref="form_pelicula">
+                        <v-text-field v-model="form_pelicula_nombre" label="Nombre" :rules="rules_form_pelicula"></v-text-field>
+                        <v-text-field v-model="form_pelicula_comentario" label="Comentario"></v-text-field>
+                        <v-file-input v-model="form_pelicula_cargar_imagen" label="Imagen" accept="image/png, image/jpeg, image/bmp" prepend-icon="mdi-camera"></v-file-input>
+                        <v-textarea clearable v-model="form_pelicula_link" label="Links"></v-textarea>
+                        <v-select
+                            v-model="form_pelicula_estado"
+                            :items="estados"
+                            item-title="texto"
+                            item-value="id"
+                            label="Estado"
+                            :rules="rules_form_pelicula"
+                        ></v-select>
+                        <v-text-field v-model="form_pelicula_fecha_vista" label="Fecha vista" :rules="rules_form_pelicula"></v-text-field>
+                    </v-form>
+                    </v-card-text>
+                    <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        prepend-icon="mdi-close"
+                        variant="elevated"
+            @@click="cerrar_modal_pelicula()"
+                    >
+                        Cerrar
+                    </v-btn>
+                    <v-btn
+                        prepend-icon="mdi-content-save-outline"
+                        variant="elevated"
+            @@click="validar_formulario_pelicula()"
+                    >
+                        Guardar
+                    </v-btn>
+                    </v-card-actions>
+                </v-card>
+                </v-dialog>
+            <!-- Fin de modal película -->
+            <!-- Modal de serie -->
+                <v-dialog
+                v-model="modal_serie"
+                persistent
+                width="500"
+                justify="center"
+                >
+                <v-card>
+                    <v-card-title class="headline black text-center" primary-title>
+                    <span class="text-h5">Serie</span>
+                    </v-card-title>
+                    <v-card-text>
+                    <v-form ref="form_serie">
+                        <v-text-field v-model="form_serie_nombre" label="Nombre" :rules="rules_form_serie"></v-text-field>
+                        <v-text-field v-model="form_serie_comentario" label="Comentario"></v-text-field>
+                        <v-file-input v-model="form_serie_cargar_imagen" label="Imagen" accept="image/png, image/jpeg, image/bmp" prepend-icon="mdi-camera"></v-file-input>
+                        <v-textarea clearable v-model="form_serie_link" label="Links"></v-textarea>
+                        <v-text-field v-model="form_serie_ultima_temporada" label="Última temporada" :rules="rules_form_serie"></v-text-field>
+                        <v-text-field v-model="form_serie_ultimo_capitulo" label="Último capítulo" :rules="rules_form_serie"></v-text-field>
+                        <v-select
+                            v-model="form_serie_estado"
+                            :items="estados"
+                            item-title="texto"
+                            item-value="id"
+                            label="Estado"
+                            :rules="rules_form_serie"
+                        ></v-select>
+                        <v-text-field v-model="form_serie_fecha_final_vista" label="Fecha vista"></v-text-field>
+                    </v-form>
+                    </v-card-text>
+                    <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        prepend-icon="mdi-close"
+                        variant="elevated"
+            @@click="cerrar_modal_serie()"
+                    >
+                        Cerrar
+                    </v-btn>
+                    <v-btn
+                        prepend-icon="mdi-content-save-outline"
+                        variant="elevated"
+            @@click="validar_formulario_serie()"
+                    >
+                        Guardar
+                    </v-btn>
+                    </v-card-actions>
+                </v-card>
+                </v-dialog>
+            <!-- Fin de modal serie -->
+            <!-- Modal de cuenta -->
+                <v-dialog
+                v-model="modal_cuenta"
+                persistent
+                width="400"
+                justify="center"
+                >
+                <v-card>
+                    <v-card-title class="headline black text-center" primary-title>
+                    <span class="text-h5">Cuenta</span>
+                    </v-card-title>
+                    <v-card-text>
+                    <v-form ref="form_cuenta">
+                        <v-text-field readonly v-model="form_cuenta_usuario_actual" label="Usuario actual"></v-text-field>
+                        <v-text-field v-model="form_cuenta_nuevo_usuario" label="Nuevo usuario"></v-text-field>
+                        <v-text-field type="password" v-model="form_cuenta_nueva_clave" label="Nueva clave"></v-text-field>
+                        <v-text-field type="password" v-model="form_cuenta_clave_actual" label="Clave actual" :rules="rules_form_cuenta"></v-text-field>
+                    </v-form>
+                    </v-card-text>
+                    <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        prepend-icon="mdi-close"
+                        variant="elevated"
+            @@click="cerrar_modal_cuenta()"
+                    >
+                        Cerrar
+                    </v-btn>
+                    <v-btn
+                        prepend-icon="mdi-content-save-outline"
+                        variant="elevated"
+            @@click="validar_formulario_cuenta()"
+                    >
+                        Guardar
+                    </v-btn>
+                    </v-card-actions>
+                </v-card>
+                </v-dialog>
+            <!-- Fin de modal cuenta -->
+            <!-- Modal para confirmar borrado de película -->
+                <v-dialog
+                v-model="modal_dialog_borrar_pelicula"
+                persistent
+                width="500"
+                justify="center"
+                >
+                <v-card>
+                    <v-card-title class="headline black text-center" primary-title>
+                    <span class="text-h5">Confirmación</span>
+                    </v-card-title>
+                    <v-card-text>
+                        Desea borrar la película {{modal_dialog_nombre_pelicula}} ?
+                    </v-card-text>
+                    <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        prepend-icon="mdi-cancel"
+                        variant="elevated"
+            @@click="cerrar_modal_borrar_pelicula()"
+                    >
+                        Cancelar
+                    </v-btn>
+                    <v-btn
+                        prepend-icon="mdi-delete"
+                        variant="elevated"
+            @@click="borrar_pelicula()"
+                    >
+                        Borrar
+                    </v-btn>
+                    </v-card-actions>
+                </v-card>
+                </v-dialog>
+            <!-- Fin de modal para borrar película -->
+            <!-- Modal para confirmar borrado de serie -->
+                <v-dialog
+                v-model="modal_dialog_borrar_serie"
+                persistent
+                width="500"
+                justify="center"
+                >
+                <v-card>
+                    <v-card-title class="headline black text-center" primary-title>
+                    <span class="text-h5">Confirmación</span>
+                    </v-card-title>
+                    <v-card-text>
+                        Desea borrar la serie {{modal_dialog_nombre_serie}} ?
+                    </v-card-text>
+                    <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        prepend-icon="mdi-cancel"
+                        variant="elevated"
+            @@click="cerrar_modal_borrar_serie()"
+                    >
+                        Cancelar
+                    </v-btn>
+                    <v-btn
+                        prepend-icon="mdi-delete"
+                        variant="elevated"
+            @@click="borrar_serie()"
+                    >
+                        Borrar
+                    </v-btn>
+                    </v-card-actions>
+                </v-card>
+                </v-dialog>
+            <!-- Fin de modal para confirmar borrado de serie -->
+            <div class="botones-nuevo">
+                <v-btn prepend-icon="mdi-plus" absolute variant="elevated" type="submit" color="primary" @@click="modal_pelicula = true">Nueva pelicula</v-btn>
+                <v-btn prepend-icon="mdi-plus" absolute variant="elevated" type="submit" color="primary" class="boton-nueva-serie" @@click="modal_serie = true">Nueva serie</v-btn>
+            </div>
+            <v-divider></v-divider>
+            <div class="filtros">
+                <v-row justify="center" align="center">
+                    <v-col cols="4">
+                        <v-text-field v-model="buscar_por_nombre" v-on:keyup.enter="filtroPorNombre" label="Buscar por nombre"></v-text-field>
+                    </v-col>
+                    <v-col cols="2">
+                        <v-checkbox @@change="filtroSinTerminar" label="Sin terminar"></v-checkbox>
+                    </v-col>
+                    <v-col cols="2">
+                        <v-checkbox @@change="filtroFinalizados" label="Finalizados"></v-checkbox>
+                    </v-col>
+                </v-row>
+            </div>
+            <v-divider></v-divider>
+            <div class="listado-registros">
+                <v-container>
+                    <div v-if="registros_tabla.length">
+                        <v-row class="pa-2">
+                            <v-col
+                                v-for="(registro) in registros_tabla"
+                                :key="registro.id && registro.nombre"
+                                class="d-flex child-flex"
+                                cols="3"
+                            >
+                                <v-card :key="registro.id" width="50vh" height="60vh" class="justify-center">
+
+                                    <div v-if="registro.imagen == null || registro.imagen == ''">
+                                        <v-img
+                                          class="align-end text-white"
+                                          src="https://cdn.vuetifyjs.com/images/cards/docks.jpg"
+                                          cover
+                                          height="300px"
+                                        />
+                                    </div>
+                                    <div v-else>
+                                        <v-img
+                                          class="align-end text-white"
+                                          :src="'images/' + registro.imagen"
+                                          cover
+                                          height="300px"
+
+                                        />
+                                    </div>
+
+                                    <v-card-title class="text-h6 text-md-h5 text-lg-h4 text-center">{{ registro.nombre }}</v-card-title>
+
+                                    <v-card-text class="unselectable text-center font-weight-bold">
+                                        <div v-if="registro.ultimo_capitulo == null">
+                                             <div class="text-h6">{{ registro.comentario ? registro.comentario : "Sin comentarios" }}</div>
+                                            <div v-if="registro.links == ''">
+                                                <div class="text-h6 red-accent-4">Sin links</div>
+                                            </div>
+                                            <div v-else>
+                                                <div class="text-h6 green-accent-3">Links disponibles</div>
+                                            </div>
+                                             <div v-if="registro.estado == 2">
+                                                 <div class="text-h6 green-accent-3">Terminada el {{ registro.fecha_vista }}</div>
+                                             </div>
+                                             <div v-else>
+                                                 <div class="text-h6 red-accent-4">Sin terminar</div>
+                                             </div>
+                                             <br/>
+                                             <br/>
+                                        </div>
+                                        <div v-else>
+                                            <div class="text-h6">{{ registro.comentario ? registro.comentario : "Sin comentarios" }}</div>
+                                            <div v-if="registro.links == ''">
+                                                <div class="text-h6 red-accent-4">Sin links</div>
+                                            </div>
+                                            <div v-else>
+                                                <div class="text-h6 green-accent-3">Links disponibles</div>
+                                            </div>
+                                            <div class="text-h6">Temporada {{ registro.ultima_temporada }} - Capítulo {{ registro.ultimo_capitulo }}</div>
+                                             <div v-if="registro.estado == 2">
+                                                 <div class="text-h6 green-accent-3">Terminada el {{ registro.fecha_final_vista }}</div>
+                                             </div>
+                                             <div v-else>
+                                                 <div class="text-h6 red-accent-4">Sin terminar</div>
+                                             </div>
+                                        </div>
+                                    </v-card-text>
+                                    <v-card-actions class="justify-center">
+                                        <div v-if="registro.ultimo_capitulo == null">
+                                            <v-btn @@click="cargar_modal_pelicula_editar(registro.id,'pelicula')" size="small" icon="mdi-pencil" absolute variant="elevated" type="submit" color="primary"></v-btn>
+                                            <v-btn @@click="cargar_confirmacion_pelicula_borrar(registro.id,'pelicula')" size="small" icon="mdi-delete" absolute variant="elevated" type="submit" color="primary"></v-btn>
+                                        </div>
+                                        <div v-else>
+                                            <v-btn @@click="cargar_modal_serie_editar(registro.id,'serie')" size="small" icon="mdi-pencil" absolute variant="elevated" type="submit" color="primary"></v-btn>
+                                            <v-btn @@click="cargar_confirmacion_serie_borrar(registro.id,'serie')" size="small" icon="mdi-delete" absolute variant="elevated" type="submit" color="primary"></v-btn>
+                                        </div>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+                    </div>
+                    <div v-else>
+                        <div class="text-h6 text-md-h5 text-lg-h4 text-center">No se encontraron registros</div>
+                    </div>
+
+                </v-container>
+            </div>
+
+        </v-card>
+        <div class="text-center">
+            <v-snackbar
+                v-model="snackbar"
+                :timeout="5000"
+                multi-line
+            >
+                {{ texto }}
+
+                <template v-slot:actions>
+                <v-btn
+                    color="red"
+                    variant="text"
+                    @@click="snackbar = false"
+                >
+                    Cerrar
+                </v-btn>
+                </template>
+            </v-snackbar>
+        </div>
+    </v-app>
+</script>
+
+<script>
+
+    // Efecto de cargando en las peticiones axios
+
+    axios.interceptors.request.use(function (config) {
+
+        document.body.classList.add('efecto-cargando');
+
+        return config
+    }, function (error) {
+        return Promise.reject(error);
+    });
+
+    axios.interceptors.response.use(function (response) {
+
+        document.body.classList.remove('efecto-cargando');
+
+        return response;
+    }, function (error) {
+        return Promise.reject(error);
+    });
+
+    axios.defaults.headers.common = { 'Authorization': `Bearer ${sessionStorage.getItem(config.nombre_sesion)}` }
+
+    const { createApp } = Vue;
+    const { createVuetify } = Vuetify;
+
+    const customDarkTheme = {
+        dark: true,
+        colors: {
+            //background: "#15202b",
+            //surface: "#15202b",
+            primary: "#3A8B63",
+            //secondary: "#03dac6",
+            //error: "#f44336",
+            //info: "#2196F3",
+            //success: "#4caf50",
+            //warning: "#fb8c00",
+        },
+    };
+
+    const vuetify = createVuetify({
+        theme: {
+            defaultTheme: "customDarkTheme",
+            themes: {
+                customDarkTheme,
+            },
+        },
+    })
+
+    const app = createApp({
+        template: "#app-template",
+        data() {
+            return {
+                rules_form_cuenta: [
+                    value => {
+                        if (value) return true
+                        return "El campo es requerido"
+                    },
+                ],
+                rules_form_pelicula: [
+                    value => {
+                        if (value) return true
+                        return "El campo es requerido"
+                    },
+                ],
+                rules_form_serie: [
+                    value => {
+                        if (value) return true
+                        return "El campo es requerido"
+                    },
+                ],
+                // Mensajes
+                texto: "",
+                snackbar: false,
+                // Fecha
+                fecha_de_hoy: this.formatearFecha((new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10)),
+                // Formulario cuenta
+                modal_cuenta: false,
+                form_cuenta_usuario_actual: "@usuario_logeado",
+                form_cuenta_nuevo_usuario: "",
+                form_cuenta_nueva_clave: "",
+                form_cuenta_clave_actual: "",
+                // Formulario pelicula
+                modal_pelicula: false,
+                form_pelicula_id: 0,
+                form_pelicula_nombre: "",
+                form_pelicula_comentario: "",
+                form_serie_cargar_imagen: "",
+                form_pelicula_imagen: "",
+                form_pelicula_link: "",
+                form_pelicula_estado: "",
+                form_pelicula_fecha_vista: "",
+                // Formulario serie
+                modal_serie: false,
+                form_serie_id: 0,
+                form_serie_nombre: "",
+                form_serie_comentario: "",
+                form_pelicula_cargar_imagen: [],
+                form_serie_imagen: "",
+                form_serie_link: "",
+                form_serie_ultima_temporada: "",
+                form_serie_ultimo_capitulo: "",
+                form_serie_estado: "",
+                form_serie_fecha_final_vista: "",
+                // Borrar pelicula
+                modal_dialog_borrar_pelicula: false,
+                modal_dialog_id_borrar_pelicula: 0,
+                modal_dialog_nombre_pelicula: "",
+                // Borrar serie
+                modal_dialog_borrar_serie: false,
+                modal_dialog_id_borrar_serie: 0,
+                modal_dialog_nombre_serie: "",
+                // Variables
+                model: 'tab-1',
+                usuario_logeado: "@usuario_logeado",
+                registros : [],
+                registros_tabla: [],
+                buscar_por_nombre: "",
+                estados: [{ id: 1, texto: "Sin terminar" },{ id: 2, texto: "Terminado" }],
+            };
+        },
+        mounted: function () {
+            this.listar_registros();
+            this.form_pelicula_fecha_vista = this.fecha_de_hoy;
+        },
+        watch: {
+            form_pelicula_cargar_imagen: function (nuevoValor, valorViejo) {
+                if(nuevoValor) {
+                    this.crearImagenPelicula(nuevoValor);
+                } else {
+                    this.form_pelicula_imagen = "";
+                }
+            },
+            form_serie_cargar_imagen: function (nuevoValor, valorViejo) {
+                if (nuevoValor) {
+                    this.crearImagenSerie(nuevoValor);
+                } else {
+                    this.form_serie_imagen = "";
+                }
+            }
+        },
+        methods: {
+            formatearFecha (fecha) {
+              if (!fecha) return null
+              const [año, mes, dia] = fecha.split('-')
+              return `${dia}/${mes}/${año}`
+            },
+            crearImagenPelicula: function (FileObject) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                this.form_pelicula_imagen = event.target.result;
+              }
+              reader.readAsDataURL(FileObject[0]);
+            },
+            crearImagenSerie: function(FileObject) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                this.form_serie_imagen = event.target.result;
+              }
+              reader.readAsDataURL(FileObject[0]);
+            },
+            cerrar_sesion: function () {
+                axios
+                    .post(config.api_url + "/cerrar_sesion", {})
+                    .then(response => {
+                        var data = response.data;
+                        var estado = data.estado;
+                        if (estado == 1) {
+                            sessionStorage.removeItem(config.nombre_sesion, "");
+                            window.location.href = '/';
+                        } else {
+                            this.snackbar = true;
+                            this.texto = "Ocurrió un error cerrando la sesion";
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+            },
+            limpiar_modales: function() {
+                // Cerrar modales
+                this.modal_pelicula = false;
+                this.modal_serie = false;
+                // Formulario pelicula
+                this.form_pelicula_id = 0;
+                this.form_pelicula_nombre = "";
+                this.form_pelicula_comentario = "";
+                this.form_pelicula_imagen = "";
+                this.form_pelicula_link = "";
+                this.form_pelicula_estado = "";
+                this.form_pelicula_fecha_vista = this.fecha_de_hoy;
+                // Formulario serie
+                this.form_serie_id = 0;
+                this.form_serie_nombre = "";
+                this.form_serie_comentario = "";
+                this.form_serie_imagen = "";
+                this.form_serie_link = "";
+                this.form_serie_ultima_temporada = "";
+                this.form_serie_ultimo_capitulo = "";
+                this.form_serie_estado = "";
+                this.form_serie_fecha_final_vista = "";
+            },
+            recargar_registros: function () {
+                this.limpiar_modales();
+                this.listar_registros();
+                //recargar filtros ...
+            },
+            listar_registros: function () {
+                axios
+                    .get(config.api_url + "/registros")
+                    .then(response => {
+                        var data = response.data;
+                        var estado = data.estado;
+                        if (estado == 1) {
+                            const peliculas = response.data.peliculas;
+                            const series = response.data.series;
+                            this.registros = peliculas.concat(series);
+                            this.registros.sort((a, b) => {
+                                return new Date(b.fecha_ultima_actualizacion) - new Date(a.fecha_ultima_actualizacion);
+                            });
+                            this.registros_tabla = this.registros;
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+            },
+            filtroPorNombre: function () {
+                const lista_filtrada = [];
+
+                for (var i = 0; i < this.registros.length; i++) {
+                    var datos = this.registros[i];
+                    var nombre = datos.nombre;
+                    var estado = datos.estado;
+                    if (nombre.toLowerCase().indexOf(this.buscar_por_nombre.toLowerCase()) > -1) {
+                        lista_filtrada.push(datos);
+                    }
+                }
+
+                this.registros_tabla = lista_filtrada;
+            },
+            filtroSinTerminar: function(e) {
+                if(e.target.checked == true) {
+                    const lista_filtrada = [];
+
+                    for (var i = 0; i < this.registros.length; i++) {
+                        var datos = this.registros[i];
+                        var nombre = datos.nombre;
+                        var estado = datos.estado;
+                        if (estado == 1) {
+                            lista_filtrada.push(datos);
+                        }
+                    }
+
+                    this.registros_tabla = lista_filtrada;
+                } else {
+                    this.listar_registros();
+                }
+            },
+            filtroFinalizados: function(e) {
+                if(e.target.checked == true) {
+                    const lista_filtrada = [];
+
+                    for (var i = 0; i < this.registros.length; i++) {
+                        var datos = this.registros[i];
+                        var nombre = datos.nombre;
+                        var estado = datos.estado;
+                        if (estado == 2) {
+                            lista_filtrada.push(datos);
+                        }
+                    }
+
+                    this.registros_tabla = lista_filtrada;
+                } else {
+                    this.listar_registros();
+                }
+            },
+            async validar_formulario_cuenta() {
+                const { valid } = await this.$refs.form_cuenta.validate();
+
+                if (valid) {
+                    this.actualizar_cuenta();
+                }
+            },
+            cerrar_modal_cuenta: function () {
+                this.modal_cuenta = false;
+                this.form_cuenta_nuevo_usuario = "";
+                this.form_cuenta_nueva_clave = "";
+                this.form_cuenta_clave_actual = "";
+            },
+            async validar_formulario_pelicula() {
+                const { valid } = await this.$refs.form_pelicula.validate();
+
+                if (valid) {
+                    this.guardar_pelicula();
+                }
+            },
+            cerrar_modal_pelicula: function () {
+                this.limpiar_modales();
+            },
+            async validar_formulario_serie() {
+                const { valid } = await this.$refs.form_serie.validate();
+
+                if (valid) {
+                    this.guardar_serie();
+                }
+            },
+            cerrar_modal_serie: function () {
+                this.limpiar_modales();
+            },
+            guardar_pelicula: function () {
+                var id_pelicula = this.form_pelicula_id;
+                var datos = {
+                    "Id": id_pelicula,
+                    "Nombre": this.form_pelicula_nombre,
+                    "Comentario": this.form_pelicula_comentario,
+                    "Imagen": this.form_pelicula_imagen,
+                    "Links": this.form_pelicula_link,
+                    "Estado": this.form_pelicula_estado,
+                    "Fecha_vista": this.form_pelicula_fecha_vista
+                }
+                if (id_pelicula != 0) {
+                    axios
+                        .put(config.api_url + "/peliculas/" + id_pelicula, datos)
+                        .then(response => {
+                            var datos = response.data;
+                            var estado = datos.estado;
+                            if(estado == "1") {
+                                this.mostrar_mensaje("La película se actualizando correctamente");
+                                this.recargar_registros();
+                            } else {
+                                this.mostrar_mensaje("Ocurrió un error actualizando la película");
+                            }
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        })
+                } else {
+                    axios
+                        .post(config.api_url + "/peliculas", datos)
+                        .then(response => {
+                            var datos = response.data;
+                            var estado = datos.estado;
+                            if(estado == "1") {
+                                this.mostrar_mensaje("La película se registro correctamente");
+                                this.recargar_registros();
+                            } else {
+                                this.mostrar_mensaje("Ocurrió un error registrando la pelicula");
+                            }
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        })
+                }
+            },
+            guardar_serie: function () {
+                var id_serie = this.form_serie_id;
+                var datos = {
+                    "Id": id_serie,
+                    "Nombre": this.form_serie_nombre,
+                    "Comentario": this.form_serie_comentario,
+                    "Imagen": this.form_serie_imagen,
+                    "Links": this.form_serie_link,
+                    "Ultima_temporada": this.form_serie_ultima_temporada,
+                    "Ultimo_capitulo": this.form_serie_ultimo_capitulo,
+                    "Estado": this.form_serie_estado,
+                    "Fecha_final_vista": this.form_serie_fecha_final_vista
+                }
+                if(id_serie != 0) {
+                    axios
+                        .put(config.api_url + "/series/" + id_serie, datos)
+                        .then(response => {
+                            var datos = response.data;
+                            var estado = datos.estado;
+                            if(estado == "1") {
+                                this.mostrar_mensaje("La serie se actualizo correctamente");
+                                this.recargar_registros();
+                            } else {
+                                this.mostrar_mensaje("Ocurrió un error actualizando la serie");
+                            }
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        })
+                } else {
+                    axios
+                        .post(config.api_url + "/series", datos)
+                        .then(response => {
+                            var datos = response.data;
+                            var estado = datos.estado;
+                            if (estado == "1") {
+                                this.mostrar_mensaje("La serie se registro correctamente");
+                                this.recargar_registros();
+                            } else {
+                                this.mostrar_mensaje("Ocurrió un error registrando la serie");
+                            }
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        })
+                }
+            },
+            cargar_modal_pelicula_editar: function (id,tipo) {
+
+                axios
+                    .get(config.api_url + "/peliculas/" + id)
+                    .then(response => {
+                        var datos = response.data;
+                        var estado = datos.estado;
+                        if (estado == "1") {
+                            var pelicula = datos.pelicula;
+                            this.form_pelicula_id = id;
+                            this.form_pelicula_nombre = pelicula.nombre;
+                            this.form_pelicula_comentario = pelicula.comentario;
+                            this.form_pelicula_imagen = pelicula.imagen;
+                            this.form_pelicula_link = pelicula.links;
+                            this.form_pelicula_estado = pelicula.estado;
+                            this.form_pelicula_fecha_vista = pelicula.fecha_vista;
+                            this.modal_pelicula = true;
+                        } else {
+                            this.mostrar_mensaje("Ocurrió cargando datos de pelicula");
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+            },
+            cargar_modal_serie_editar: function (id,tipo) {
+                axios
+                    .get(config.api_url + "/series/" + id)
+                    .then(response => {
+                        var datos = response.data;
+                        var estado = datos.estado;
+                        if (estado == "1") {
+                            var serie = datos.serie;
+                            this.form_serie_id = id;
+                            this.form_serie_nombre = serie.nombre;
+                            this.form_serie_comentario = serie.comentario;
+                            this.form_serie_imagen = serie.imagen;
+                            this.form_serie_link = serie.links;
+                            this.form_serie_ultima_temporada = serie.ultima_temporada;
+                            this.form_serie_ultimo_capitulo = serie.ultimo_capitulo;
+                            this.form_serie_estado = serie.estado;
+                            this.form_serie_fecha_final_vista = serie.fecha_final_vista;
+                            this.modal_serie = true;
+                        } else {
+                            this.mostrar_mensaje("Ocurrió cargando datos de serie");
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+            },
+            cargar_confirmacion_pelicula_borrar: function(id,tipo) {
+                axios
+                    .get(config.api_url + "/peliculas/" + id)
+                    .then(response => {
+                        var datos = response.data;
+                        var estado = datos.estado;
+                        if (estado == "1") {
+                            var pelicula = datos.pelicula;
+                            var pelicula_id = pelicula.id;
+                            var pelicula_nombre = pelicula.nombre;
+                            this.modal_dialog_id_borrar_pelicula = pelicula_id;
+                            this.modal_dialog_nombre_pelicula = pelicula_nombre;
+                            this.modal_dialog_borrar_pelicula = true;
+                        } else {
+                            this.mostrar_mensaje("Ocurrió cargando datos de pelicula");
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+            },
+            cargar_confirmacion_serie_borrar: function(id,tipo) {
+                axios
+                    .get(config.api_url + "/series/" + id)
+                    .then(response => {
+                        var datos = response.data;
+                        var estado = datos.estado;
+                        if (estado == "1") {
+                            var serie = datos.serie;
+                            var serie_id = serie.id;
+                            var serie_nombre = serie.nombre;
+                            this.modal_dialog_id_borrar_serie = serie_id;
+                            this.modal_dialog_nombre_serie = serie_nombre;
+                            this.modal_dialog_borrar_serie = true;
+                        } else {
+                            this.mostrar_mensaje("Ocurrió cargando datos de serie");
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+            },
+            cerrar_modal_borrar_pelicula: function() {
+                this.modal_dialog_borrar_pelicula = false;
+                this.modal_dialog_id_borrar_pelicula = 0;
+                this.modal_dialog_nombre_pelicula = "";
+            },
+            cerrar_modal_borrar_serie: function () {
+                this.modal_dialog_borrar_serie = false;
+                this.modal_dialog_id_borrar_serie = 0;
+                this.modal_dialog_nombre_serie = "";
+            },
+            borrar_pelicula: function () {
+                axios
+                    .delete(config.api_url + "/peliculas/" + this.modal_dialog_id_borrar_pelicula)
+                    .then(response => {
+                        var datos = response.data;
+                        var estado = datos.estado;
+                        if (estado == "1") {
+                            this.mostrar_mensaje("La película se borro correctamente");
+                            this.modal_dialog_borrar_pelicula = false;
+                            this.modal_dialog_id_borrar_pelicula = 0;
+                            this.modal_dialog_nombre_pelicula = "";
+                            this.recargar_registros();
+                        } else {
+                            this.mostrar_mensaje("Ocurrió un error borrando la película");
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+            },
+            borrar_serie: function () {
+                axios
+                    .delete(config.api_url + "/series/" + this.modal_dialog_id_borrar_serie)
+                    .then(response => {
+                        var datos = response.data;
+                        var estado = datos.estado;
+                        if (estado == "1") {
+                            this.mostrar_mensaje("La serie se borro correctamente");
+                            this.modal_dialog_borrar_serie = false;
+                            this.modal_dialog_id_borrar_serie = 0;
+                            this.modal_dialog_nombre_serie = "";
+                            this.recargar_registros();
+                        } else {
+                            this.mostrar_mensaje("Ocurrió un error borrando la serie");
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+            },
+            actualizar_cuenta: function () {
+                var datos = {
+                    "Usuario_actual": this.form_cuenta_usuario_actual,
+                    "Nuevo_usuario": this.form_cuenta_nuevo_usuario,
+                    "Nueva_clave": this.form_cuenta_nueva_clave,
+                    "Clave_actual": this.form_cuenta_clave_actual
+                }
+                axios
+                    .post(config.api_url + "/cuenta", datos)
+                    .then(response => {
+                        var datos = response.data;
+                        var estado = datos.estado;
+                        if(estado == "1") {
+                            sessionStorage.removeItem(config.nombre_sesion, "");
+                            window.location.href = '/';
+                        }
+                        if(estado == 2) {
+                            this.mostrar_mensaje("Los datos son inválidos");
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+            },
+            mostrar_mensaje: function (texto) {
+                this.snackbar = true;
+                this.texto = texto;
+            }
+        },
+        computed: {
+        }
+    })
+        .use(vuetify)
+        .mount("#app");
+
+</script>
