@@ -15,10 +15,41 @@
 
               <v-spacer></v-spacer>
 
+              <v-btn icon="mdi-information" @@click="modal_about = true"></v-btn>
               <v-btn icon="mdi-account-circle" @@click="modal_cuenta = true"></v-btn>
               <v-btn icon="mdi-logout" @@click=cerrar_sesion()></v-btn>
 
             </v-toolbar>
+
+             <!-- Modal de about -->
+                <v-dialog
+                v-model="modal_about"
+                persistent
+                width="500"
+                justify="center"
+                >
+                <v-card>
+                    <v-card-title class="text-h6 text-md-h5 text-lg-h4 text-center" primary-title>
+                    <span class="text-h5">About</span>
+                    </v-card-title>
+                    <v-card-text class="text-center">
+                        <div class="text-h6">Nombre : Registro de películas y series</div>
+                        <div class="text-h6">Version 1.0</div>
+                        <div class="text-h6">Autor : Ismael Heredia</div>
+                    </v-card-text>
+                    <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        prepend-icon="mdi-close"
+                        variant="elevated"
+            @@click="cerrar_modal_about()"
+                    >
+                        Cerrar
+                    </v-btn>
+                    </v-card-actions>
+                </v-card>
+                </v-dialog>
+             <!-- Fin de modal de about -->
 
             <!-- Modal de película -->
                 <v-dialog
@@ -432,6 +463,8 @@
                 snackbar: false,
                 // Fecha
                 fecha_de_hoy: this.formatearFecha((new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10)),
+                // About
+                modal_about: false,
                 // Formulario cuenta
                 modal_cuenta: false,
                 form_cuenta_usuario_actual: "@usuario_logeado",
@@ -498,6 +531,9 @@
             }
         },
         methods: {
+            cerrar_modal_about: function () {
+                this.modal_about = false;
+            },
             formatearFecha (fecha) {
               if (!fecha) return null
               const [año, mes, dia] = fecha.split('-')
