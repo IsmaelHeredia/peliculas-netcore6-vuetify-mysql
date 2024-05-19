@@ -7,6 +7,7 @@ namespace NetCorePeliculasSeries.Data
     public class PeliculaDatos
     {
         string connection_string = new Configuracion().conexion_string;
+        Funciones app_funciones = new Funciones();
 
         public List<PeliculaModel> Listar(string patron)
         {
@@ -17,7 +18,7 @@ namespace NetCorePeliculasSeries.Data
                 var connection = new MySqlConnection(connection_string);
                 connection.Open();
 
-                var query = new MySqlCommand("SELECT id,nombre,comentario,imagen,links,estado,fecha_vista,fecha_registro,fecha_ultima_actualizacion FROM peliculas p WHERE p.nombre LIKE @patron", connection);
+                var query = new MySqlCommand("SELECT id,nombre,comentario,imagen,links,estado,fecha_vista,fecha_registro,fecha_ultima_actualizacion FROM peliculas p WHERE p.nombre LIKE @patron ORDER BY STR_TO_DATE(p.fecha_ultima_actualizacion,'%Y-%m-%d %h:%i:%s') DESC", connection);
                 query.Parameters.AddWithValue("@patron", "%" + patron + "%");
 
                 var dr = query.ExecuteReader();
@@ -120,8 +121,11 @@ namespace NetCorePeliculasSeries.Data
 
                 if (pelicula.Imagen != "")
                 {
-                    Archivos archivos = new Archivos();
-                    ruta_imagen = archivos.subirArchivo(pelicula.Imagen);
+                    if (app_funciones.ValidarBase64(pelicula.Imagen))
+                    {
+                        Archivos archivos = new Archivos();
+                        ruta_imagen = archivos.subirArchivo(pelicula.Imagen);
+                    }
                 }
 
                 var query = new MySqlCommand("INSERT INTO peliculas(nombre,comentario,imagen,links,estado,fecha_vista,fecha_registro,fecha_ultima_actualizacion) VALUES(@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8)", connection);
@@ -157,13 +161,16 @@ namespace NetCorePeliculasSeries.Data
 
                 string fecha_ultima_actualizacion = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
 
-                string ruta_imagen = "";
+                string ruta_imagen = this.Obtener(pelicula.Id).Imagen;
 
                 if (pelicula.Imagen != "")
                 {
-                    Archivos archivos = new Archivos();
-                    archivos.borrarArchivo(this.Obtener(pelicula.Id).Imagen);
-                    ruta_imagen = archivos.subirArchivo(pelicula.Imagen);
+                    if (app_funciones.ValidarBase64(pelicula.Imagen))
+                    {
+                        Archivos archivos = new Archivos();
+                        archivos.borrarArchivo(this.Obtener(pelicula.Id).Imagen);
+                        ruta_imagen = archivos.subirArchivo(pelicula.Imagen);
+                    }
                 }
 
                 var query = new MySqlCommand("UPDATE peliculas SET nombre = @p1, comentario = @p2, imagen = @p3, links = @p4, estado = @p5, fecha_vista = @p6, fecha_ultima_actualizacion = @p7 WHERE id = @p8", connection);

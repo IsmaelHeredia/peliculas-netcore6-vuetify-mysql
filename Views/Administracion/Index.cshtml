@@ -116,8 +116,8 @@
                         <v-text-field v-model="form_serie_comentario" label="Comentario"></v-text-field>
                         <v-file-input v-model="form_serie_cargar_imagen" label="Imagen" accept="image/png, image/jpeg, image/bmp" prepend-icon="mdi-camera"></v-file-input>
                         <v-textarea clearable v-model="form_serie_link" label="Links"></v-textarea>
-                        <v-text-field v-model="form_serie_ultima_temporada" label="Última temporada" :rules="rules_form_serie"></v-text-field>
-                        <v-text-field v-model="form_serie_ultimo_capitulo" label="Último capítulo" :rules="rules_form_serie"></v-text-field>
+                        <v-text-field v-model="form_serie_ultima_temporada" type="number" label="Última temporada" :rules="rules_form_serie"></v-text-field>
+                        <v-text-field v-model="form_serie_ultimo_capitulo" type="number" label="Último capítulo" :rules="rules_form_serie"></v-text-field>
                         <v-select
                             v-model="form_serie_estado"
                             :items="estados"
@@ -608,10 +608,7 @@
                         if (estado == 1) {
                             const peliculas = response.data.peliculas;
                             const series = response.data.series;
-                            this.registros = peliculas.concat(series);
-                            this.registros.sort((a, b) => {
-                                return new Date(b.fecha_ultima_actualizacion) - new Date(a.fecha_ultima_actualizacion);
-                            });
+                            this.registros = series.concat(peliculas);
                             this.registros_tabla = this.registros;
                         }
                     })

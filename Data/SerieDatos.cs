@@ -7,6 +7,7 @@ namespace NetCorePeliculasSeries.Data
     public class SerieDatos
     {
         string connection_string = new Configuracion().conexion_string;
+        Funciones app_funciones = new Funciones();
 
         public List<SerieModel> Listar(string patron)
         {
@@ -17,7 +18,7 @@ namespace NetCorePeliculasSeries.Data
                 var connection = new MySqlConnection(connection_string);
                 connection.Open();
 
-                var query = new MySqlCommand("SELECT id,nombre,comentario,imagen,links,ultima_temporada,ultimo_capitulo,estado,fecha_final_vista,fecha_registro,fecha_ultima_actualizacion FROM series s WHERE s.nombre LIKE @patron", connection);
+                var query = new MySqlCommand("SELECT id,nombre,comentario,imagen,links,ultima_temporada,ultimo_capitulo,estado,fecha_final_vista,fecha_registro,fecha_ultima_actualizacion FROM series s WHERE s.nombre LIKE @patron ORDER BY STR_TO_DATE(s.fecha_ultima_actualizacion,'%Y-%m-%d %h:%i:%s') DESC", connection);
                 query.Parameters.AddWithValue("@patron", "%" + patron + "%");
 
                 var dr = query.ExecuteReader();
@@ -124,8 +125,11 @@ namespace NetCorePeliculasSeries.Data
 
                 if (serie.Imagen != "")
                 {
-                    Archivos archivos = new Archivos();
-                    ruta_imagen = archivos.subirArchivo(serie.Imagen);
+                    if (app_funciones.ValidarBase64(serie.Imagen))
+                    {
+                        Archivos archivos = new Archivos();
+                        ruta_imagen = archivos.subirArchivo(serie.Imagen);
+                    }
                 }
 
                 var query = new MySqlCommand("INSERT INTO series(nombre,comentario,imagen,links,ultima_temporada,ultimo_capitulo,estado,fecha_final_vista,fecha_registro,fecha_ultima_actualizacion) VALUES(@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p10)", connection);
@@ -162,13 +166,16 @@ namespace NetCorePeliculasSeries.Data
 
                 string fecha_ultima_actualizacion = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
 
-                string ruta_imagen = "";
+                string ruta_imagen = this.Obtener(serie.Id).Imagen;
 
                 if (serie.Imagen != "")
                 {
-                    Archivos archivos = new Archivos();
-                    archivos.borrarArchivo(this.Obtener(serie.Id).Imagen);
-                    ruta_imagen = archivos.subirArchivo(serie.Imagen);
+                    if (app_funciones.ValidarBase64(serie.Imagen))
+                    {
+                        Archivos archivos = new Archivos();
+                        archivos.borrarArchivo(this.Obtener(serie.Id).Imagen);
+                        ruta_imagen = archivos.subirArchivo(serie.Imagen);
+                    }
                 }
 
                 var query = new MySqlCommand("UPDATE series SET nombre = @p1, comentario = @p2, imagen = @p3, links = @p4, ultima_temporada = @p5, ultimo_capitulo = @p6, estado = @p7, fecha_final_vista = @p8, fecha_ultima_actualizacion = @p9 WHERE id = @p10", connection);

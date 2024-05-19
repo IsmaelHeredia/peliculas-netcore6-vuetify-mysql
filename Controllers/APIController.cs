@@ -103,8 +103,14 @@ namespace NetCorePeliculasSeries.Controllers
             {
                 if (validacion.validarCrearPelicula(data))
                 {
-                    peliculaDatos.Agregar(data);
-                    return Json(new { estado = 1, mensaje = "Pelicula guardada correctamente" });
+                    if (peliculaDatos.Agregar(data))
+                    {
+                        return Json(new { estado = 1, mensaje = "Película guardada correctamente" });
+                    }
+                    else
+                    {
+                        return Json(new { estado = 0, mensaje = "Ocurrió un error guardando la película" });
+                    }
                 }
                 else
                 {
@@ -123,10 +129,16 @@ namespace NetCorePeliculasSeries.Controllers
             if (seguridad.ValidarTokenIngreso(Request.Headers["Authorization"].ToString()))
             {
                 data.Id = id;
-                peliculaDatos.Actualizar(data);
                 if (validacion.validarEditarPelicula(data))
                 {
-                    return Json(new { estado = 1, mensaje = "Pelicula actualizada correctamente" });
+                    if (peliculaDatos.Actualizar(data))
+                    {
+                        return Json(new { estado = 1, mensaje = "Pelicula actualizada correctamente" });
+                    }
+                    else
+                    {
+                        return Json(new { estado = 0, mensaje = "Ocurrió un error actualizando la película" });
+                    }
                 }
                 else
                 {
@@ -146,8 +158,14 @@ namespace NetCorePeliculasSeries.Controllers
             {
                 PeliculaModel pelicula = new PeliculaModel();
                 pelicula.Id = id;
-                peliculaDatos.Borrar(pelicula);
-                return Json(new { estado = 1, mensaje = "Pelicula borrada correctamente" });
+                if (peliculaDatos.Borrar(pelicula))
+                {
+                    return Json(new { estado = 1, mensaje = "Pelicula borrada correctamente" });
+                }
+                else
+                {
+                    return Json(new { estado = 0, mensaje = "Ocurrió un error borrando la película" });
+                }
             }
             else
             {
@@ -188,8 +206,14 @@ namespace NetCorePeliculasSeries.Controllers
             {
                 if (validacion.validarCrearSerie(data))
                 {
-                    serieDatos.Agregar(data);
-                    return Json(new { estado = 1, mensaje = "Serie guardada correctamente" });
+                    if (serieDatos.Agregar(data))
+                    {
+                        return Json(new { estado = 1, mensaje = "Serie guardada correctamente" });
+                    }
+                    else
+                    {
+                        return Json(new { estado = 0, mensaje = "Ocurrió un error guardando la serie" });
+                    }
                 }
                 else
                 {
@@ -208,10 +232,16 @@ namespace NetCorePeliculasSeries.Controllers
             if (seguridad.ValidarTokenIngreso(Request.Headers["Authorization"].ToString()))
             {
                 data.Id = id;
-                serieDatos.Actualizar(data);
                 if (validacion.validarEditarSerie(data))
                 {
-                    return Json(new { estado = 1, mensaje = "Serie actualizada correctamente" });
+                    if (serieDatos.Actualizar(data))
+                    {
+                        return Json(new { estado = 1, mensaje = "Serie actualizada correctamente" });
+                    }
+                    else
+                    {
+                        return Json(new { estado = 0, mensaje = "Ocurrió un error actualizando la serie" });
+                    }
                 }
                 else
                 {
@@ -231,8 +261,14 @@ namespace NetCorePeliculasSeries.Controllers
             {
                 SerieModel serie = new SerieModel();
                 serie.Id = id;
-                serieDatos.Borrar(serie);
-                return Json(new { estado = 1, mensaje = "Serie borrada correctamente" });
+                if (serieDatos.Borrar(serie))
+                {
+                    return Json(new { estado = 1, mensaje = "Serie borrada correctamente" });
+                }
+                else
+                {
+                    return Json(new { estado = 0, mensaje = "Ocurrió un error borrando la serie" });
+                }
             }
             else
             {
